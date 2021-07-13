@@ -19,7 +19,7 @@
         {{ validation.no_tlp[0] }}
       </div>
   </div>
-  <div class="col-12">
+  <div class="col-6">
     <label for="inputAddress" class="form-label">Alamat</label>
     <input type="text" class="form-control" id="inputAddress" placeholder="Masukkan Alamat"
     v-model="friend.alamat" />
@@ -27,51 +27,75 @@
         {{ validation.alamat[0] }}
       </div>
   </div>
+  <div class="col-6">
+     <label for="inputAddress" class="form-label">Groups</label>
+  <select class="form-select" aria-label="Default select example" v-model="friend.groups_id">
+ 
+  <option v-for="group in groups" :key="group.id" :value="group.id">{{ group.name }}</option>
 
+</select>
+ </div> 
   <div class="col-12">
     <button type="submit" class="btn btn-primary">Add</button>
   </div>
 </form>
   </div>
 </div>
-
+ 
 </template>
 <script>
-import { ref } from 'vue';
-import { reactive } from 'vue';
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { reactive, ref, onMounted} from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 export default {
   setup() {
     const friend = reactive({
       nama: '',
       no_tlp: '',
-      alamat: ''
-    })
-    const validation = ref([])
-    const router = useRouter()
+      alamat: '',
+      groups_id: '',
+    });
+    let groups = ref([]);
+    const validation = ref([]);
+    const router = useRouter();
+    onMounted(()=>{
+       axios
+      .get("http://127.0.0.1:8000/api/groups")
+      .then((response) => {
+       groups.value = response.data.data;
+       console.log(response);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    });
     function store(){
-      let nama = friend.nama
-      let no_tlp = friend.no_tlp
-      let alamat = friend.alamat
-      axios.post('http://127.0.0.1:8000/api/friends', {
+      let nama = friend.nama;
+      let no_tlp = friend.no_tlp;
+      let alamat = friend.alamat;
+      let groups_id = friend.groups_id;
+      axios.post("http://127.0.0.1:8000/api/friends", {
         nama: nama,
         no_tlp: no_tlp,
-        alamat: alamat
-      }).then(() => {
-        router.push({
-          name:'Home'
-        })
-      }).catch(error => {
-        console.log(error)
+        alamat: alamat,
+        groups_id : groups_id,
       })
+      .then(() => {
+        router.push({
+          name:'Home',
+        });
+      })
+      .catch(error => {
+        validation.value = error.response.data;
+      });
     }
     return {
       friend,
       validation,
       router, 
-      store
+      store,
+      groups,
     }
   },
 }
-</script> 
+</script>
